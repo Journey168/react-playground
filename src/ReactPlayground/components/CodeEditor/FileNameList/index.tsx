@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
 import { PlaygroundContext } from "../../../PlaygroundContext";
-import { FileNameItem } from "./fileNameItem";
+import { FileNameItem } from "./FileNameItem";
 import styles from "./index.module.scss";
 
 export default function FileNameList() {
