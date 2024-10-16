@@ -63,7 +63,7 @@ export const PlaygroundProvider = (props: PropsWithChildren) => {
       },
     };
 
-    setFiles({ ...newFile, ...rest });
+    setFiles({ ...rest, ...newFile });
   };
 
   return (
