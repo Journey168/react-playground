@@ -115,3 +115,18 @@ export const compile = (files: Files) => {
 
   return babelTransform(ENTRY_FILE_NAME, main.value, files);
 };
+
+// 拿到主线程的数据编译后再回传给主线程
+self.addEventListener("message", ({ data }) => {
+  try {
+    self.postMessage({
+      type: "COMPILED_CODE",
+      data: compile(data),
+    });
+  } catch (e) {
+    self.postMessage({
+      type: "ERROR",
+      error: e,
+    });
+  }
+});

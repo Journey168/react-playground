@@ -1,10 +1,12 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { PlaygroundContext } from "../../PlaygroundContext";
 // import Editor from "../CodeEditor/Editor";
-import { compile } from "./compiler";
+// import { compile } from "./compiler.worker";
+import CompilerWoker from "./compiler.worker?worker";
 import iframeRaw from "./iframe.html?raw";
 import { IMPORT_MAP_FILE_NAME } from "../../files";
 import { Message } from "../Message";
+import { debounce } from "lodash-es";
 
 interface MessageData {
   data: {
@@ -36,10 +38,28 @@ export default function Preview() {
   const [compiledCode, setCompiledCode] = useState("");
   const [iframeUrl, setIframeUrl] = useState(getIframeUrl());
 
+  const compilerWokerRef = useRef<Worker>();
   useEffect(() => {
-    const res = compile(files);
-    setCompiledCode(res);
-  }, [files]);
+    if (!compilerWokerRef.current) {
+      compilerWokerRef.current = new CompilerWoker();
+      compilerWokerRef.current.addEventListener("message", ({ data }) => {
+        if (data.type === "COMPILED_CODE") {
+          console.log("worker", data);
+          setCompiledCode(data.data);
+        } else {
+          console.error("error", data);
+        }
+      });
+    }
+  }, []);
+  useEffect(
+    debounce(() => {
+      // const res = compile(files);
+      // setCompiledCode(res);
+      compilerWokerRef.current?.postMessage(files);
+    }, 500),
+    [files]
+  );
 
   useEffect(() => {
     setIframeUrl(getIframeUrl());
@@ -53,9 +73,8 @@ export default function Preview() {
       setError(message);
     }
     if (type === "RESET_ERROR") {
-      setError('');
+      setError("");
     }
-
   };
   const [error, setError] = useState("");
   useEffect(() => {
